@@ -50,19 +50,19 @@ def clean(ctx):
     ctx.run('rm -rf data')
 
 @task
-def standalone(ctx, port=27017, dbpath='data'):
+def standalone(ctx, port=27017, dbpath='data', auth=False):
     ''' create a standalone mongod '''
     __mongo__ = _setup(ctx)
     print __mongo__.version()
-    setup = __mongo__.deploy_standalone(ctx, port, dbpath)
+    setup = __mongo__.deploy_standalone(ctx, port, dbpath, auth)
     return setup
 
 @task
-def replset(ctx, num=3, port=27017, dbpath='data', name='replset'):
+def replset(ctx, num=3, port=27017, dbpath='data', name='replset', auth=False):
     ''' create a replica set '''
     __mongo__ = _setup(ctx)
     print __mongo__.version()
-    setup = __mongo__.deploy_replset(ctx, num, port, dbpath, name)
+    setup = __mongo__.deploy_replset(ctx, num, port, dbpath, name, auth)
     return setup
 
 @task

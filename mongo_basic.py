@@ -1,6 +1,8 @@
 # Basic MongoDB
 
 import os
+import time
+import json
 
 class BasicMongo:
     def __init__(self):
@@ -25,6 +27,25 @@ class BasicMongo:
         return self.cmdline_replset(port, dbpath, replSet='shard') + '--shardsvr '
 
 
+    ## Auth
+
+    def create_first_user(self, ctx):
+        user = {'user': 'user', 'pwd': 'password', 'roles': ['root']}
+        command_str = 'mongo --host localhost admin '
+        command_str += '--eval "db.createUser({0})"'.format(user)
+        print '>>>', command_str
+        ctx.run(command_str)
+
+    def create_keyfile(self, ctx, dbpath):
+        print('Creating keyfile ...')
+        self.create_data_dir(ctx)
+        keyfilepath = '{0}/keyfile.txt'.format(dbpath)
+        command_str = 'echo "KeyFile" > {0} && chmod 600 {0}'.format(keyfilepath)
+        print '>>>', command_str
+        ctx.run(command_str)
+        return keyfilepath
+
+
     ## Standalone
 
     def create_data_dir(self, ctx):
@@ -32,11 +53,15 @@ class BasicMongo:
             print('Creating data directory ...')
             os.makedirs('data')
 
-    def deploy_standalone(self, ctx, port=27017, dbpath='data'):
+    def deploy_standalone(self, ctx, port=27017, dbpath='data', auth=False):
         self.create_data_dir(ctx)
         cmdline = self.cmdline(port, dbpath)
+        if auth:
+            cmdline += '--auth '
         print('>>> %s' % cmdline)
         result = ctx.run(cmdline, hide=True)
+        if auth:
+            self.create_first_user(ctx)
         return cmdline
 
 
@@ -53,6 +78,15 @@ class BasicMongo:
             os.makedirs(dirname)
         return {'dbpaths': dbpaths}
 
+    def wait_for_primary(self, ctx):
+        for i in range(10):
+            print 'Waiting for primary ...'
+            time.sleep(2)
+            res = ctx.run('mongo --quiet --eval "db.isMaster()"', hide=True)
+            if res.stdout.find('"ismaster" : true') > 0:
+                return True
+        return False
+
     def replset_conf(self, ctx, num, port, name):
         num, port = int(num), int(port)
         replconf = {'_id': name, 'members': []}
@@ -68,9 +102,11 @@ class BasicMongo:
         ctx.run(cmd)
         return replconf
 
-    def deploy_replset(self, ctx, num, port, dbpath, name):
+    def deploy_replset(self, ctx, num, port, dbpath, name, auth):
         num, port = int(num), int(port)
         dbpaths = self.create_data_dir_replset(ctx, num, port)
+        if auth:
+            keyfilepath = self.create_keyfile(ctx, dbpath)
         cmdlines = []
         for i in range(num):
             i_port = port + i
@@ -78,6 +114,8 @@ class BasicMongo:
 
             cmdline = self.cmdline_replset(i_port, i_dbpath, name)
 
+            if auth:
+                cmdline += '--keyFile {0} '.format(keyfilepath)
             if name.startswith('shard'):
                 cmdline += '--shardsvr'
             elif name.startswith('config'):
@@ -89,6 +127,9 @@ class BasicMongo:
 
         replconf = self.initiate_replset(ctx, num, port, name)
         setup = {'dbpaths': dbpaths, 'cmdlines': cmdlines, 'replconf': replconf}
+
+        if auth and self.wait_for_primary(ctx):
+            self.create_first_user(ctx)
 
         return setup
 

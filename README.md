@@ -33,6 +33,7 @@ Docstring:
   create a standalone mongod
 
 Options:
+  -a, --auth
   -d STRING, --dbpath=STRING
   -p INT, --port=INT
 ```
@@ -51,6 +52,7 @@ Options:
   -d STRING, --dbpath=STRING
   -n INT, --num=INT
   -p INT, --port=INT
+  -u, --auth
 ```
 
 ### Sharded cluster:
