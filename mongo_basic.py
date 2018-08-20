@@ -146,13 +146,13 @@ class BasicMongo:
         for i in range(numshards):
             i_port = port + (i * nodespershard)
             i_name = 'shard%02d' % i
-            setup = self.deploy_replset(ctx, nodespershard, i_port, dbpath, i_name)
+            setup = self.deploy_replset(ctx, nodespershard, i_port, dbpath, i_name, False)
             shardsetup.append(setup)
         return shardsetup
 
     def deploy_configsvr(self, ctx, num, dbpath, port):
         print('Deploying config servers ...')
-        configsvr = self.deploy_replset(ctx, num, port, dbpath, 'config')
+        configsvr = self.deploy_replset(ctx, num, port, dbpath, 'config', False)
         return configsvr
 
     def deploy_mongos(self, ctx, configsvr, shardsvr, dbpath, port):
