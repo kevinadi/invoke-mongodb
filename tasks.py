@@ -39,9 +39,7 @@ def _version(ctx):
 def kill(ctx):
     ''' kill all mongod/mongos '''
     print('Killing mongod ...')
-    ctx.run('killall mongod || true', hide=True)
-    ctx.run('killall mongos || true', hide=True)
-    time.sleep(2)
+    ctx.run('pgrep mongo[d,s] | xargs kill', hide=True)
 
 @task
 def clean(ctx):
