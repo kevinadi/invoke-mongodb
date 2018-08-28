@@ -35,19 +35,25 @@ def _version(ctx):
     __mongo__ = _setup(ctx)
     print(__mongo__.version())
 
-@task
+@task(auto_shortflags=False)
+def ps(ctx):
+    ''' list all mongod/mongos '''
+    cmd = "ps -Ao 'pid,command' | grep -v 'grep .* mongod' | grep --color '\smongo[ds]\s'"
+    ctx.run(cmd)
+
+@task(auto_shortflags=False)
 def kill(ctx):
     ''' kill all mongod/mongos '''
     print('Killing mongod ...')
     ctx.run('pgrep mongo[d,s] | xargs kill', hide=True)
 
-@task
+@task(auto_shortflags=False)
 def clean(ctx):
     ''' remove data directory '''
     print('Removing data dir ...')
     ctx.run('rm -rf data')
 
-@task
+@task(auto_shortflags=False)
 def standalone(ctx, port=27017, dbpath='data', auth=False):
     ''' create a standalone mongod '''
     __mongo__ = _setup(ctx)
@@ -55,7 +61,7 @@ def standalone(ctx, port=27017, dbpath='data', auth=False):
     setup = __mongo__.deploy_standalone(ctx, port, dbpath, auth)
     return setup
 
-@task
+@task(auto_shortflags=False)
 def replset(ctx, num=3, port=27017, dbpath='data', name='replset', auth=False):
     ''' create a replica set '''
     __mongo__ = _setup(ctx)
@@ -63,8 +69,8 @@ def replset(ctx, num=3, port=27017, dbpath='data', name='replset', auth=False):
     setup = __mongo__.deploy_replset(ctx, num, port, dbpath, name, auth)
     return setup
 
-@task
-def sharded(ctx, numshards=2, nodespershard=1, numconfig=1, port=27017):
+@task(auto_shortflags=False)
+def sharded(ctx, numshards=2, nodespershard=1, numconfig=1, port=27017, auth=False):
     ''' create a sharded cluster '''
     __mongo__ = _setup(ctx)
     print __mongo__.version()
