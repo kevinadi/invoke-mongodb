@@ -29,9 +29,9 @@ class BasicMongo:
 
     ## Auth
 
-    def create_first_user(self, ctx):
+    def create_first_user(self, ctx, port):
         user = {'user': 'user', 'pwd': 'password', 'roles': ['root']}
-        command_str = 'mongo --host localhost admin '
+        command_str = 'mongo --host localhost --port {0} admin '.format(port)
         command_str += '--eval "db.createUser({0})"'.format(user)
         print '>>>', command_str
         ctx.run(command_str)
@@ -40,9 +40,10 @@ class BasicMongo:
         print('Creating keyfile ...')
         self.create_data_dir(ctx)
         keyfilepath = '{0}/keyfile.txt'.format(dbpath)
-        command_str = 'echo "KeyFile" > {0} && chmod 600 {0}'.format(keyfilepath)
-        print '>>>', command_str
-        ctx.run(command_str)
+        if not os.path.isfile(keyfilepath):
+            command_str = 'echo "KeyFile" > {0} && chmod 600 {0}'.format(keyfilepath)
+            print '>>>', command_str
+            ctx.run(command_str)
         return keyfilepath
 
 
@@ -78,11 +79,11 @@ class BasicMongo:
             os.makedirs(dirname)
         return {'dbpaths': dbpaths}
 
-    def wait_for_primary(self, ctx):
+    def wait_for_primary(self, ctx, port):
         for i in range(10):
             print 'Waiting for primary ...'
             time.sleep(2)
-            res = ctx.run('mongo --quiet --eval "db.isMaster()"', hide=True)
+            res = ctx.run('mongo --port {0} --quiet --eval "db.isMaster()"'.format(port), hide=True)
             if res.stdout.find('"ismaster" : true') > 0:
                 return True
         return False
@@ -128,8 +129,8 @@ class BasicMongo:
         replconf = self.initiate_replset(ctx, num, port, name)
         setup = {'dbpaths': dbpaths, 'cmdlines': cmdlines, 'replconf': replconf}
 
-        if auth and self.wait_for_primary(ctx):
-            self.create_first_user(ctx)
+        if auth and self.wait_for_primary(ctx, port):
+            self.create_first_user(ctx, port)
 
         return setup
 
@@ -141,28 +142,32 @@ class BasicMongo:
         hosts = [x.get('host') for x in conf.get('members')]
         return replsetid + '/' + ','.join(hosts)
 
-    def deploy_shardsvr(self, ctx, numshards, nodespershard, dbpath, port):
+    def deploy_shardsvr(self, ctx, numshards, nodespershard, dbpath, port, auth):
         shardsetup = []
         for i in range(numshards):
             i_port = port + (i * nodespershard)
             i_name = 'shard%02d' % i
-            setup = self.deploy_replset(ctx, nodespershard, i_port, dbpath, i_name, False)
+            setup = self.deploy_replset(ctx, nodespershard, i_port, dbpath, i_name, auth)
             shardsetup.append(setup)
         return shardsetup
 
-    def deploy_configsvr(self, ctx, num, dbpath, port):
+    def deploy_configsvr(self, ctx, num, dbpath, port, auth):
         print('Deploying config servers ...')
-        configsvr = self.deploy_replset(ctx, num, port, dbpath, 'config', False)
+        configsvr = self.deploy_replset(ctx, num, port, dbpath, 'config', auth)
         return configsvr
 
-    def deploy_mongos(self, ctx, configsvr, shardsvr, dbpath, port):
+    def deploy_mongos(self, ctx, configsvr, shardsvr, dbpath, port, auth):
         print('Deploying mongos ...')
         configuri = self.create_uri_from_replconf(configsvr.get('replconf'))
-        mongoscmd = 'mongos --configdb {0} --port {1} --logpath data/mongos.log --fork'.format(configuri, port)
+        mongoscmd = 'mongos --configdb {0} --port {1} --logpath data/mongos.log --fork '.format(configuri, port)
+        if auth:
+            mongoscmd += '--keyFile data/keyfile.txt '
         print '>>>', mongoscmd
         ctx.run(mongoscmd, hide=True)
         shardconf = [x.get('replconf') for x in shardsvr]
         for shard in shardconf:
-            cmd = 'mongo --eval "sh.addShard(\'{0}\')"'.format(self.create_uri_from_replconf(shard))
+            cmd = 'mongo --eval "sh.addShard(\'{0}\')" '.format(self.create_uri_from_replconf(shard))
+            if auth:
+                cmd += '-u user -p password --authenticationDatabase admin'
             print '>>>', cmd
             ctx.run(cmd)

@@ -74,8 +74,8 @@ def sharded(ctx, numshards=2, nodespershard=1, numconfig=1, port=27017, auth=Fal
     ''' create a sharded cluster '''
     __mongo__ = _setup(ctx)
     print __mongo__.version()
-    shardsvr = __mongo__.deploy_shardsvr(ctx, numshards, nodespershard, 'data', port+1)
-    configsvr = __mongo__.deploy_configsvr(ctx, numconfig, 'data', port+(numshards*nodespershard)+1)
-    mongos = __mongo__.deploy_mongos(ctx, configsvr, shardsvr, 'data', 27017)
+    shardsvr = __mongo__.deploy_shardsvr(ctx, numshards, nodespershard, 'data', port+1, auth)
+    configsvr = __mongo__.deploy_configsvr(ctx, numconfig, 'data', port+(numshards*nodespershard)+1, auth)
+    mongos = __mongo__.deploy_mongos(ctx, configsvr, shardsvr, 'data', 27017, auth)
 
 
