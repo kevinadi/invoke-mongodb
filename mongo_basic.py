@@ -3,6 +3,8 @@
 import os
 import time
 import json
+import string
+import random
 
 class BasicMongo:
     def __init__(self):
@@ -41,7 +43,9 @@ class BasicMongo:
         keyfilepath = '{0}/keyfile.txt'.format(dbpath)
         if not os.path.isfile(keyfilepath):
             print('Creating keyfile ...')
-            command_str = 'echo "KeyFile" > {0} && chmod 600 {0}'.format(keyfilepath)
+            chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
+            key = ''.join(random.choice(chars) for _ in range(40))
+            command_str = 'echo {1} > {0} && chmod 600 {0}'.format(keyfilepath, key)
             print '>>>', command_str
             ctx.run(command_str)
         return keyfilepath
