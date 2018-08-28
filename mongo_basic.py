@@ -37,10 +37,10 @@ class BasicMongo:
         ctx.run(command_str)
 
     def create_keyfile(self, ctx, dbpath):
-        print('Creating keyfile ...')
         self.create_data_dir(ctx)
         keyfilepath = '{0}/keyfile.txt'.format(dbpath)
         if not os.path.isfile(keyfilepath):
+            print('Creating keyfile ...')
             command_str = 'echo "KeyFile" > {0} && chmod 600 {0}'.format(keyfilepath)
             print '>>>', command_str
             ctx.run(command_str)
