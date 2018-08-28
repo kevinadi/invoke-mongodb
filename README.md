@@ -33,9 +33,9 @@ Docstring:
   create a standalone mongod
 
 Options:
-  -a, --auth
-  -d STRING, --dbpath=STRING
-  -p INT, --port=INT
+  --auth
+  --dbpath=STRING
+  --port=INT
 ```
 
 ### Replica set:
@@ -48,11 +48,11 @@ Docstring:
   create a replica set
 
 Options:
-  -a STRING, --name=STRING
-  -d STRING, --dbpath=STRING
-  -n INT, --num=INT
-  -p INT, --port=INT
-  -u, --auth
+  --auth
+  --dbpath=STRING
+  --name=STRING
+  --num=INT
+  --port=INT
 ```
 
 ### Sharded cluster:
@@ -65,8 +65,9 @@ Docstring:
   create a sharded cluster
 
 Options:
-  -n INT, --numshards=INT
-  -o INT, --nodespershard=INT
-  -p INT, --port=INT
-  -u INT, --numconfig=INT
+  --auth
+  --nodespershard=INT
+  --numconfig=INT
+  --numshards=INT
+  --port=INT
 ```
