@@ -17,7 +17,8 @@ Available tasks:
 
   _version     print detected mongod version
   clean        remove data directory
-  kill         kill all mongod
+  kill         kill all mongod/mongos
+  ps           list all mongod/mongos
   replset      create a replica set
   sharded      create a sharded cluster
   standalone   create a standalone mongod
