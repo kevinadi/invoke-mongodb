@@ -34,6 +34,12 @@ def _version(ctx):
     __mongo__ = _setup(ctx)
     print(__mongo__.version())
 
+@task
+def m(ctx):
+    ''' show script to install mongodb version manager '''
+    cmd = 'curl https://raw.githubusercontent.com/aheckmann/m/master/bin/m'
+    print(cmd)
+
 @task(auto_shortflags=False)
 def ps(ctx):
     ''' list all mongod/mongos '''
