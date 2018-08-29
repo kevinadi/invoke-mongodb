@@ -109,6 +109,7 @@ class BasicMongo:
         replconf = {'_id': name, 'members': []}
         for i in range(num):
             replconf['members'].append({'_id': i, 'host': 'localhost:%d' % (port+i)})
+        replconf['members'][0]['priority'] = 2
         return replconf
 
     def initiate_replset(self, ctx, num, port, name, script):
