@@ -3,7 +3,7 @@ Invoke tasks to stand up MongoDB deployments
 
 **Requires**: [Invoke](http://www.pyinvoke.org/index.html)
 
-Install Invoke with `pip install -r requirements.txt`
+Install with `python setup.py install`
 
 **Supports**: MongoDB 3.2, 3.4, 3.6, 4.0
 
@@ -12,8 +12,8 @@ Install Invoke with `pip install -r requirements.txt`
 ### Basic usage:
 
 ```
-$ inv -l
-Available tasks:
+$ minv -l
+Subcommands:
 
   _version     print detected mongod version
   clean        remove data directory
@@ -27,8 +27,8 @@ Available tasks:
 ### Standalone:
 
 ```
-$ inv standalone -h
-Usage: inv[oke] [--core-opts] standalone [--options] [other tasks here ...]
+$ minv standalone -h
+Usage: minv [--core-opts] standalone [--options] [other tasks here ...]
 
 Docstring:
   create a standalone mongod
@@ -43,8 +43,8 @@ Options:
 ### Replica set:
 
 ```
-$ inv replset -h
-Usage: inv[oke] [--core-opts] replset [--options] [other tasks here ...]
+$ minv replset -h
+Usage: minv [--core-opts] replset [--options] [other tasks here ...]
 
 Docstring:
   create a replica set
@@ -61,8 +61,8 @@ Options:
 ### Sharded cluster:
 
 ```
-$ inv sharded -h
-Usage: inv[oke] [--core-opts] sharded [--options] [other tasks here ...]
+$ minv sharded -h
+Usage: minv [--core-opts] sharded [--options] [other tasks here ...]
 
 Docstring:
   create a sharded cluster
