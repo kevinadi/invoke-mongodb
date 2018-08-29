@@ -1,6 +1,6 @@
-#import pymongo
+from __future__ import print_function
+
 import os
-import sys
 import time
 from invoke import task
 from invoke.tasks import call
@@ -28,7 +28,6 @@ def _setup(ctx):
     return mongo
 
 
-
 @task
 def _version(ctx):
     ''' print detected mongod version '''
@@ -54,28 +53,32 @@ def clean(ctx):
     ctx.run('rm -rf data')
 
 @task(auto_shortflags=False)
-def standalone(ctx, port=27017, dbpath='data', auth=False):
+def standalone(ctx, port=27017, dbpath='data', auth=False, script=False):
     ''' create a standalone mongod '''
     __mongo__ = _setup(ctx)
-    print __mongo__.version()
-    setup = __mongo__.deploy_standalone(ctx, port, dbpath, auth)
+    print('#', __mongo__.version())
+    setup = __mongo__.deploy_standalone(ctx, port, dbpath, auth, script)
     return setup
 
 @task(auto_shortflags=False)
-def replset(ctx, num=3, port=27017, dbpath='data', name='replset', auth=False):
+def replset(ctx, num=3, port=27017, dbpath='data', name='replset', auth=False, script=False):
     ''' create a replica set '''
     __mongo__ = _setup(ctx)
-    print __mongo__.version()
-    setup = __mongo__.deploy_replset(ctx, num, port, dbpath, name, auth)
+    print('#', __mongo__.version())
+    if auth:
+        __mongo__.create_keyfile(ctx, dbpath, script)
+    setup = __mongo__.deploy_replset(ctx, num, port, dbpath, name, auth, script)
     return setup
 
 @task(auto_shortflags=False)
-def sharded(ctx, numshards=2, nodespershard=1, numconfig=1, port=27017, auth=False):
+def sharded(ctx, numshards=2, nodespershard=1, numconfig=1, port=27017, auth=False, script=False):
     ''' create a sharded cluster '''
     __mongo__ = _setup(ctx)
-    print __mongo__.version()
-    shardsvr = __mongo__.deploy_shardsvr(ctx, numshards, nodespershard, 'data', port+1, auth)
-    configsvr = __mongo__.deploy_configsvr(ctx, numconfig, 'data', port+(numshards*nodespershard)+1, auth)
-    mongos = __mongo__.deploy_mongos(ctx, configsvr, shardsvr, 'data', 27017, auth)
+    print('#', __mongo__.version())
+    if auth:
+        __mongo__.create_keyfile(ctx, 'data', script)
+    shardsvr = __mongo__.deploy_shardsvr(ctx, numshards, nodespershard, 'data', port+1, auth, script)
+    configsvr = __mongo__.deploy_configsvr(ctx, numconfig, 'data', port+(numshards*nodespershard)+1, auth, script)
+    mongos = __mongo__.deploy_mongos(ctx, configsvr, shardsvr, 'data', 27017, auth, script)
 
 

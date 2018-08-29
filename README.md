@@ -37,6 +37,7 @@ Options:
   --auth
   --dbpath=STRING
   --port=INT
+  --script
 ```
 
 ### Replica set:
@@ -54,6 +55,7 @@ Options:
   --name=STRING
   --num=INT
   --port=INT
+  --script
 ```
 
 ### Sharded cluster:
@@ -71,4 +73,5 @@ Options:
   --numconfig=INT
   --numshards=INT
   --port=INT
+  --script
 ```
