@@ -72,7 +72,7 @@ class BasicMongo:
             ctx.run(cmdline, hide=True)
         if auth:
             self.create_first_user(ctx, port, script)
-        return cmdline
+        return {'cmdlines': cmdline}
 
 
     ### Replica set
@@ -193,3 +193,4 @@ class BasicMongo:
             print(cmd)
             if not script:
                 ctx.run(cmd)
+        return {'cmdlines': mongoscmd}

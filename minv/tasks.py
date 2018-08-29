@@ -27,6 +27,19 @@ def _setup(ctx):
     mongo = mongo_ver.Mongo()
     return mongo
 
+def _cmdlines(setup, dbpath, script):
+    cmdlines = ''
+    if isinstance(setup, dict) and isinstance(setup.get('cmdlines'), list):
+        cmdlines = '\n'.join(x for x in setup.get('cmdlines'))
+    elif isinstance(setup, list):
+        cmdlines = '\n'.join('\n'.join(x.get('cmdlines')) for x in setup)
+    else:
+        cmdlines = setup.get('cmdlines')
+    if not script:
+        with open('{0}/start.sh'.format(dbpath), 'a') as outfile:
+            print(cmdlines, file=outfile)
+    else:
+        pass
 
 @task
 def _version(ctx):
@@ -49,14 +62,15 @@ def ps(ctx):
 @task(auto_shortflags=False)
 def kill(ctx):
     ''' kill all mongod/mongos '''
-    print('Killing mongod ...')
-    ctx.run('pgrep mongo[d,s] | xargs kill', hide=True)
+    ps(ctx)
+    ctx.run('pgrep mongo[d,s] | xargs -t kill', hide=False)
 
 @task(auto_shortflags=False)
 def clean(ctx):
     ''' remove data directory '''
-    print('Removing data dir ...')
-    ctx.run('rm -rf data')
+    cmd = 'rm -rf data'
+    print(cmd)
+    ctx.run(cmd)
 
 @task(auto_shortflags=False)
 def standalone(ctx, port=27017, dbpath='data', auth=False, script=False):
@@ -64,6 +78,7 @@ def standalone(ctx, port=27017, dbpath='data', auth=False, script=False):
     __mongo__ = _setup(ctx)
     print('#', __mongo__.version())
     setup = __mongo__.deploy_standalone(ctx, port, dbpath, auth, script)
+    _cmdlines(setup, dbpath, script)
     return setup
 
 @task(auto_shortflags=False)
@@ -74,6 +89,7 @@ def replset(ctx, num=3, port=27017, dbpath='data', name='replset', auth=False, s
     if auth:
         __mongo__.create_keyfile(ctx, dbpath, script)
     setup = __mongo__.deploy_replset(ctx, num, port, dbpath, name, auth, script)
+    _cmdlines(setup, dbpath, script)
     return setup
 
 @task(auto_shortflags=False)
@@ -84,7 +100,10 @@ def sharded(ctx, numshards=2, nodespershard=1, numconfig=1, port=27017, auth=Fal
     if auth:
         __mongo__.create_keyfile(ctx, 'data', script)
     shardsvr = __mongo__.deploy_shardsvr(ctx, numshards, nodespershard, 'data', port+1, auth, script)
+    _cmdlines(shardsvr, 'data', script)
     configsvr = __mongo__.deploy_configsvr(ctx, numconfig, 'data', port+(numshards*nodespershard)+1, auth, script)
+    _cmdlines(configsvr, 'data', script)
     mongos = __mongo__.deploy_mongos(ctx, configsvr, shardsvr, 'data', 27017, auth, script)
+    _cmdlines(mongos, 'data', script)
 
 
