@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import sys
+import re
 import time
 from invoke import task
 from invoke.tasks import call
@@ -87,17 +88,24 @@ def replset(ctx, num, port=27017, dbpath='data', name='replset', auth=False, scr
     ''' create a replica set '''
     try:
         num = int(num)
+        arbiters = 0
     except ValueError:
-        msg = 'First parameter to rs must be the number of nodes to be deployed.\n\n'
-        msg += 'Example:\n'
-        msg += '  minv rs 1 -- start a one node replica set\n'
-        msg += '  minv rs 3 -- start a three node replica set'
-        sys.exit(msg)
+        if re.match('P[S]*[A]*', num, re.IGNORECASE):
+            arbiters = len([x for x in num if x in ['A', 'a']])
+            num = len(num)
+        else:
+            msg = 'First parameter to rs must be the number of nodes to be deployed.\n\n'
+            msg += 'Example:\n'
+            msg += '  minv rs 1 -- start a one node replica set\n'
+            msg += '  minv rs 3 -- start a three node replica set\n'
+            msg += '  minv rs PSA -- start a PSA replica set\n'
+            msg += '  minv rs PSSAA -- start a PSSAA replica set'
+            sys.exit(msg)
     __mongo__ = _setup(ctx)
     print('#', __mongo__.version())
     if auth:
         __mongo__.create_keyfile(ctx, dbpath, script)
-    setup = __mongo__.deploy_replset(ctx, num, port, dbpath, name, auth, script)
+    setup = __mongo__.deploy_replset(ctx, num, arbiters, port, dbpath, name, auth, script)
     _cmdlines(setup, dbpath, script)
     return setup
 

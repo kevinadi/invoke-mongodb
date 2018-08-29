@@ -104,7 +104,7 @@ class BasicMongo:
             time.sleep(2)
         return False
 
-    def replset_conf(self, ctx, num, port, name):
+    def replset_conf(self, ctx, num, arbiters, port, name):
         num, port = int(num), int(port)
         replconf = {'_id': name, 'members': []}
         for i in range(num):
@@ -112,11 +112,13 @@ class BasicMongo:
         for i in range(7, num):
             replconf['members'][i]['votes'] = 0
             replconf['members'][i]['priority'] = 0
+        for i in range(-1, -(arbiters+1), -1):
+            replconf['members'][i]['arbiterOnly'] = 1
         replconf['members'][0]['priority'] = 2
         return replconf
 
-    def initiate_replset(self, ctx, num, port, name, script):
-        replconf = self.replset_conf(ctx, num, port, name)
+    def initiate_replset(self, ctx, num, arbiters, port, name, script):
+        replconf = self.replset_conf(ctx, num, arbiters, port, name)
         cmd = 'mongo --port {0} '.format(port)
         cmd += '--eval "rs.initiate({0})"'.format(replconf)
         print(cmd)
@@ -124,7 +126,7 @@ class BasicMongo:
             ctx.run(cmd)
         return replconf
 
-    def deploy_replset(self, ctx, num, port, dbpath, name, auth, script):
+    def deploy_replset(self, ctx, num, arbiters, port, dbpath, name, auth, script):
         num, port = int(num), int(port)
         dbpaths = self.create_data_dir_replset(ctx, num, port, script)
         if auth:
@@ -148,7 +150,7 @@ class BasicMongo:
             if not script:
                 ctx.run(cmdline, hide=True)
 
-        replconf = self.initiate_replset(ctx, num, port, name, script)
+        replconf = self.initiate_replset(ctx, num, arbiters, port, name, script)
         setup = {'dbpaths': dbpaths, 'cmdlines': cmdlines, 'replconf': replconf}
 
         if auth and self.wait_for_primary(ctx, port, script):
