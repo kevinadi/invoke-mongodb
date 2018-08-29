@@ -109,6 +109,9 @@ class BasicMongo:
         replconf = {'_id': name, 'members': []}
         for i in range(num):
             replconf['members'].append({'_id': i, 'host': 'localhost:%d' % (port+i)})
+        for i in range(7, num):
+            replconf['members'][i]['votes'] = 0
+            replconf['members'][i]['priority'] = 0
         replconf['members'][0]['priority'] = 2
         return replconf
 
