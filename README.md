@@ -15,20 +15,21 @@ Install with `python setup.py install`
 $ minv -l
 Subcommands:
 
-  _version     print detected mongod version
-  clean        remove data directory
-  kill         kill all mongod/mongos
-  ps           list all mongod/mongos
-  replset      create a replica set
-  sharded      create a sharded cluster
-  standalone   create a standalone mongod
+  _version          print detected mongod version
+  clean (cl)        remove data directory
+  kill (kl)         kill all mongod/mongos
+  m                 show script to install mongodb version manager
+  ps                list all mongod/mongos
+  replset (rs)      create a replica set
+  sharded (sh)      create a sharded cluster
+  standalone (st)   create a standalone mongod
 ```
 
 ### Standalone:
 
 ```
-$ minv standalone -h
-Usage: minv [--core-opts] standalone [--options] [other tasks here ...]
+$ minv -h st
+Usage: minv [--core-opts] st [--options] [other tasks here ...]
 
 Docstring:
   create a standalone mongod
@@ -43,8 +44,8 @@ Options:
 ### Replica set:
 
 ```
-$ minv replset -h
-Usage: minv [--core-opts] replset [--options] [other tasks here ...]
+$ minv -h rs
+Usage: minv [--core-opts] rs [--options] [other tasks here ...]
 
 Docstring:
   create a replica set
@@ -53,16 +54,25 @@ Options:
   --auth
   --dbpath=STRING
   --name=STRING
-  --num=INT
+  --num=STRING
   --port=INT
   --script
+```
+
+`num` is a positional argument when creating a replica set. It is also possible to pass replica set deployment configuration into `rs`. For example:
+
+```
+  minv rs 1 -- start a one node replica set
+  minv rs 3 -- start a three node replica set
+  minv rs PSA -- start a PSA replica set
+  minv rs PSSAA -- start a PSSAA replica set
 ```
 
 ### Sharded cluster:
 
 ```
-$ minv sharded -h
-Usage: minv [--core-opts] sharded [--options] [other tasks here ...]
+$ minv -h sh
+Usage: minv [--core-opts] sh [--options] [other tasks here ...]
 
 Docstring:
   create a sharded cluster
